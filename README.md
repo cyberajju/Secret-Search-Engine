@@ -1,80 +1,100 @@
-🔍 Secret Search Engine
+# 🔍 Secret Search Engine
 
-<p align="center"> <img src="https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif" width="600" alt="Recon Animation"/> </p>
+<p align="center">
+  <img src="https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif" width="600" alt="Recon Animation"/>
+</p>
 
-Advanced reconnaissance toolkit for bug bounty hunters and OSINT researchers.Built with ❤️ by CyberTechAjju — upgraded and enhanced from the original work by gatiella.
+Secret Search Engine is an advanced reconnaissance toolkit for bug bounty hunters and OSINT researchers. It consolidates powerful search queries (Google dorks) and platform integrations to help discover exposed assets, sensitive files, and potential vulnerabilities.
 
-✨ Features
+Built and improved by CyberTechAjju — inspired by the original project by gatiella.
 
-100+ curated Google dorks across multiple categories
+---
 
-Platform integrations: Google, GitHub, Shodan, Censys, crt.sh, Web Archive, Reddit, Pastebin, Yandex
+## ✨ Key Features
 
-Subdomain discovery and asset enumeration
+- 100+ curated Google dorks across multiple categories
+- Platform integrations: Google, GitHub, Shodan, Censys, crt.sh, Web Archive, Reddit, Pastebin, Yandex
+- Subdomain discovery and asset enumeration
+- Exposed file detection (.env, .git, backups, config files, databases)
+- Vulnerability heuristics (phpinfo, open redirects, Struts RCE indicators, upload script checks)
+- Secrets hunting (API keys, tokens, cloud credentials)
+- OSINT gathering (LinkedIn, ThreatCrowd, OpenBugBounty, Reddit mentions)
+- Query builder with tokens (site, inurl, ext, intitle, intext, -)
+- Favorites & history with export/import support
+- Keyboard shortcuts for faster workflow
 
-Exposed files detection (.env, .git, backups, configs, databases)
+---
 
-Vulnerability checks (phpinfo, open redirects, Struts RCE, upload scripts)
+## 🚀 Demo
 
-Secrets hunting (API keys, tokens, cloud creds)
+<p align="center">
+  <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" width="700" alt="Demo GIF"/>
+</p>
 
-OSINT gathering (LinkedIn, ThreatCrowd, OpenBugBounty, Reddit mentions)
+---
 
-Query builder with tokens (site, inurl, ext, intitle, intext, minus)
+## 📦 Installation
 
-Favorites & history with export/import support
+No runtime or external dependencies required — this is a static HTML toolkit.
 
-Keyboard shortcuts for faster workflow
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/cyberajju/Secret-Search-Engine.git
+   cd Secret-Search-Engine
+   ```
+2. Open `index.html` in your browser.
 
-Animated footer with motivational signature ✨
+Tip: Use a modern browser (Chrome, Firefox) for best UI/UX.
 
-🚀 Demo
+---
 
-<p align="center"> <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" width="700" alt="Demo GIF"/> </p>
+## 🎮 Usage
 
-📦 Installation
+1. Enter target domain(s). Multiple targets can be comma-separated for batch mode.
+2. Select the platform to search (Google, GitHub, Shodan, etc.).
+3. Choose a dork category and click a query to launch searches in the selected platform.
+4. Use the query builder to combine tokens and craft custom searches.
+5. Save favorite dorks and export/import them for reuse.
 
-Clone the repo:
+---
 
-git clone https://github.com/cyberajju/secret-search-engine.git
-cd secret-search-engine
+## 🧰 Dorks
 
-Open index.html in your browser — no dependencies required.
+This project includes 100+ curated Google dorks organized by category to speed up reconnaissance.  
+To keep the README readable, see the DORKS.md file (or the dorks section in the UI) for the complete list.
 
-🎮 Usage
+---
 
-Enter your target domain(s) (comma-separated for batch mode).
+## 🖼️ Screenshots
 
-Select your platform (Google, GitHub, Shodan, etc.).
+<p align="center">
+  <img src="https://media.giphy.com/media/26AHONQ79FdWZhAI0/giphy.gif" width="700" alt="UI Screenshot"/>
+</p>
 
-Click on any dork category to launch searches.
+---
 
-Use the query builder to craft custom searches.
+## 🏆 Credits
 
-Save your favorite dorks and export/import them for reuse.
+- Original inspiration: gatiella  
+- Upgrades, UI/UX improvements, and maintenance: CyberTechAjju
 
-🖼️ Screenshots
+---
 
-<p align="center"> <img src="https://media.giphy.com/media/26AHONQ79FdWZhAI0/giphy.gif" width="700" alt="UI Screenshot"/> </p>
+## ⚡ Roadmap
 
-🏆 Credits
+- Add more dork categories (Cloud, IoT, APIs)
+- Dark/light theme toggle
+- Export results to CSV/JSON
+- Integration with bug-bounty platforms
 
-Original project inspiration: gatiella
+---
 
-Upgraded, modularized, and enhanced UI/UX: CyberTechAjju
+## 📜 License
 
-⚡ Roadmap
+MIT License — free to use, modify, and share. Please use the tool responsibly and ethically.
 
-[ ] Add more dork categories (Cloud, IoT, APIs)
+---
 
-[ ] Dark/light theme toggle
-
-[ ] Export results to CSV/JSON
-
-[ ] Integration with bug bounty platforms
-
-📜 License
-
-MIT License — free to use, modify, and share. Please use responsibly and ethically.
-
-<p align="center"> <b>✨ Keep learning, keep hacking — <a href="https://github.com/cyberajju">CyberTechAjju</a> ✨</b> </p>
+<p align="center">
+  <b>✨ Keep learning, keep hacking — <a href="https://github.com/cyberajju">CyberTechAjju</a> ✨</b>
+</p>
