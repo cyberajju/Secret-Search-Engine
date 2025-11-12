@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    Secret Search Engine
+    Polished single-page recon UI for ethical bug bounty researchers.
+    Author: CyberTechAjju (Ajay)
+    Description: Advanced Google dork & OSINT launcher with profiles, favorites,
+                 multi-platform toggles, query builder, local history, export/import.
+    License: MIT
+  -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Secret Search Engine — CyberTechAjju</title>
+  <meta name="theme-color" content="#0b122f" />
+  <style>
+    /* =========================
+       Base Reset & Variables
+       ========================= */
+    :root{
+      --bg-0:#070b1f;
+      --bg-1:#0b122f;
+      --bg-2:#10173d;
+      --bg-3:#131a49;
+      --glass:rgba(255,255,255,0.06);
+      --glass-2:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.12);
+      --muted:#94a3b8;
+      --text:#e6f0ff;
+      --accent:#00f5ff;
+      --accent-2:#11a8ff;
+      --good:#2af598;
+      --warn:#ffb020;
+      --bad:#ff4d6d;
+      --shadow:0 18px 50px rgba(0,0,0,0.4);
+      --radius-1:16px;
+      --radius-2:12px;
+      --radius-3:10px;
+    }
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+    html,body{
+      height:100%;
+      background: radial-gradient(1200px 600px at 10% 10%, #0e1440 0%, #0b122f 40%, #070b1f 100%) no-repeat,
+                  linear-gradient(135deg,#0b122f 0%,#070b1f 100%);
+      color:var(--text);
+      font-family: ui-sans-serif,system-ui,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial;
+    }
+    a{ color:var(--accent); text-decoration:none; }
+    a:hover{ color:#57fbff; text-decoration:underline; }
+    button{ font: inherit; }
+    /* =========================
+       Layout
+       ========================= */
+    .page{
+      max-width:1400px;
+      margin:0 auto;
+      padding:24px;
+    }
+    header.hero{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03));
+      border-radius:var(--radius-1);
+      padding:28px;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    header.hero::before{
+      content:"";
+      position:absolute;
+      inset:-40px -40px auto auto;
+      width:480px; height:480px;
+      background: radial-gradient(closest-side, rgba(0,245,255,0.22), transparent 60%);
+      filter: blur(60px);
+      transform: translate(20px,-20px);
+      pointer-events:none;
+    }
+    .hero-top{
+      display:flex;
+      gap:20px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .logo{
+      width:52px; height:52px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:
+        conic-gradient(from 180deg at 50% 50%, rgba(0,245,255,0.2), rgba(17,168,255,0.25), rgba(0,245,255,0.2)),
+        linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.06));
+      box-shadow: 0 10px 30px rgba(0,245,255,0.18);
+      display:grid; place-items:center;
+    }
+    .logo svg{ filter:drop-shadow(0 4px 10px rgba(0,245,255,0.4)); }
+    h1.title{
+      font-size:2.2rem;
+      line-height:1.1;
+      background:linear-gradient(45deg, var(--accent), var(--accent-2));
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      font-weight:800;
+      letter-spacing:0.5px;
+    }
+    .subtitle{
+      color:var(--muted);
+      font-size:1rem;
+    }
+    .hero-stats{
+      display:flex; gap:24px; flex-wrap:wrap;
+    }
+    .stat{
+      min-width:140px;
+      padding:14px 18px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      text-align:center;
+    }
+    .stat .num{
+      font-weight:800; color:var(--accent); font-size:1.6rem;
+    }
+    .stat .label{
+      color:var(--muted); font-size:0.9rem;
+    }
+    .ethics{
+      margin-top:18px;
+      color:#c7d2fe;
+      font-size:0.95rem;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(0,245,255,0.12), rgba(255,255,255,0.04));
+    }
+    /* Controls grid */
+    .controls{
+      margin-top:22px;
+      display:grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap:18px;
+    }
+    .panel{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      border-radius:var(--radius-2);
+      padding:16px;
+      box-shadow: var(--shadow);
+    }
+    .panel h3{
+      font-size:1.05rem;
+      color:#bfeaff;
+      margin-bottom:12px;
+      letter-spacing:0.3px;
+    }
+    .domain-row{
+      display:flex; align-items:center; gap:12px; position:relative;
+    }
+    .domain-row input{
+      flex:1;
+      padding:12px 16px;
+      border-radius:12px;
+      border:1px solid rgba(0,245,255,0.35);
+      background: rgba(0,0,0,0.25);
+      color:var(--text);
+      transition:0.2s ease;
+      font-size:0.98rem;
+    }
+    .domain-row input:focus{
+      outline:none;
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0,245,255,0.28);
+    }
+    .domain-row .copy-btn,
+    .domain-row .clear-btn{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(0,245,255,0.25);
+      background: rgba(0,245,255,0.12);
+      color:var(--accent);
+      cursor:pointer; transition:0.2s;
+    }
+    .domain-row .clear-btn{ color:#ffd6ae; background: rgba(255,183,75,0.08); border-color: rgba(255,183,75,0.24); }
+    .domain-row .copy-btn:hover{ transform: translateY(-1px) scale(1.02); background: rgba(0,245,255,0.18); }
+    .domain-row .clear-btn:hover{ transform: translateY(-1px) scale(1.02); background: rgba(255,183,75,0.12); }
+    .hint{
+      margin-top:8px; font-size:0.85rem; color:var(--muted);
+    }
+    .platforms{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;
+    }
+    .chip{
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      cursor:pointer; user-select:none;
+      transition:0.2s;
+    }
+    .chip.active{
+      border-color: var(--accent);
+      background: rgba(0,245,255,0.12);
+      box-shadow: 0 0 18px rgba(0,245,255,0.18) inset;
+    }
+    .chip:hover{ transform: translateY(-1px); }
+    .profiles{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;
+    }
+    .profile-btn{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.05));
+      padding:8px 12px; border-radius:10px;
+      cursor:pointer; color:#bfeaff;
+      transition:0.2s;
+    }
+    .profile-btn:hover{ background: rgba(0,245,255,0.12); color:#eaffff; transform: translateY(-1px); }
+    .grid{
+      margin-top:22px;
+      display:grid; gap:18px;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+    }
+    @media (max-width: 1200px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 800px){ .grid{ grid-template-columns: 1fr; } .controls{ grid-template-columns: 1fr; } }
+    .card{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      border-radius:var(--radius-2);
+      padding:16px; box-shadow: var(--shadow);
+      transition:0.2s;
+    }
+    .card:hover{ border-color: rgba(0,245,255,0.25); transform: translateY(-2px); }
+    .card h4{ color:#a5f3fc; margin-bottom:10px; font-size:1rem; }
+    .btn-grid{
+      display:grid; gap:10px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+    .btn{
+      position:relative;
+      padding:12px 12px;
+      border:1px solid rgba(0,245,255,0.25);
+      background: linear-gradient(135deg, rgba(0,128,255,0.12), rgba(0,245,255,0.12));
+      border-radius:10px;
+      color:#dbeafe; text-align:left; font-weight:600;
+      cursor:pointer; transition:0.25s;
+      overflow:hidden;
+    }
+    .btn:hover{
+      border-color: var(--accent);
+      box-shadow: 0 10px 28px rgba(0,245,255,0.18);
+      transform: translateX(6px);
+    }
+    .btn::before{
+      content:"";
+      position:absolute; inset:0 auto 0 -100%;
+      width:100%; background: linear-gradient(90deg, transparent, rgba(0,245,255,0.16), transparent);
+      transition: left 0.6s;
+    }
+    .btn:hover::before{ left: 100%; }
+    .btn .meta{ color: var(--muted); font-weight:500; font-size:0.85rem; margin-top:6px; }
+    /* Builder, favorites, history */
+    .builder, .favorites, .history{
+      display:grid; gap:12px;
+    }
+    .builder-row{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .builder-row .token{
+      flex: 1 1 180px;
+      display:flex; gap:8px; align-items:center;
+    }
+    .builder-row input, .builder-row select{
+      flex:1; padding:9px 11px;
+      border-radius:10px; border:1px solid var(--border);
+      background: rgba(0,0,0,0.25); color: var(--text);
+    }
+    .builder-actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .action{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color:#c7d2fe;
+      padding:8px 11px; border-radius:10px; cursor:pointer;
+      transition:0.2s;
+    }
+    .action:hover{ background: rgba(0,245,255,0.12); color:#eaffff; transform: translateY(-1px); }
+    .query-preview{
+      margin-top:6px; padding:10px 12px;
+      border:1px dashed rgba(0,245,255,0.25);
+      background: rgba(0,245,255,0.06);
+      border-radius:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color:#d1f7ff; font-size:0.92rem;
+      word-break: break-all;
+    }
+    .small{ font-size:0.85rem; color:var(--muted); }
+    /* Footer */
+    footer.site{
+      margin-top:28px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      border-radius:var(--radius-2);
+      padding:16px;
+      text-align:center;
+      color:var(--muted);
+    }
+    footer.site .cta{
+      margin-top:6px; color:#bde6ff;
+    }
+    footer.site .cta a{ font-weight:700; }
+    /* Toasts */
+    .toast{
+      position:fixed; bottom:24px; right:24px; z-index:9999;
+      display:grid; gap:10px; min-width:280px;
+    }
+    .toast .item{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.05));
+      border-radius:12px; padding:12px 14px;
+      box-shadow: var(--shadow);
+      display:flex; gap:10px; align-items:flex-start;
+      animation: flyIn 220ms ease-out;
+    }
+    .toast .item.good{ border-color: rgba(42,245,152,0.35); }
+    .toast .item.warn{ border-color: rgba(255,176,32,0.35); }
+    .toast .item.bad{ border-color: rgba(255,77,109,0.35); }
+    .toast .item .icon{ font-size:1.2rem; }
+    .toast .item .text{ font-size:0.94rem; }
+    @keyframes flyIn{
+      from{ transform:translateY(8px); opacity:0; }
+      to{ transform:translateY(0); opacity:1; }
+    }
+    /* Modal */
+    .modal-backdrop{
+      position:fixed; inset:0; background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(2px);
+      display:none; align-items:center; justify-content:center; z-index:9998;
+    }
+    .modal{
+      width: min(760px, 92vw);
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.05));
+      border-radius:16px; padding:16px;
+      box-shadow: var(--shadow);
+    }
+    .modal h3{ color:#bfeaff; }
+    .modal .content{ margin-top:12px; color: var(--text); }
+    .modal .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:14px; }
+    .kbd{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      border-radius:8px; padding:2px 6px;
+      font-family: ui-monospace, monospace; font-size:0.84rem; color:#cfeaff;
+    }
+    /* Loading line */
+    .loading-line{
+      height:3px; width:100%;
+      background: linear-gradient(90deg, rgba(0,245,255,0.2), rgba(17,168,255,0.2));
+      border-radius:999px; overflow:hidden;
+    }
+    .loading-line .bar{
+      height:100%;
+      width:30%;
+      background: linear-gradient(90deg, rgba(0,245,255,0.8), rgba(17,168,255,0.8));
+      animation: slide 1.4s ease-in-out infinite;
+    }
+    @keyframes slide{
+      0%{ transform: translateX(-30%); }
+      50%{ transform: translateX(120%); }
+      100%{ transform: translateX(-30%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- =========================
+         Hero / Header
+         ========================= -->
+    <header class="hero" aria-label="Secret Search Engine header">
+      <div class="hero-top">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l7 4v8c0 3.866-3.134 7-7 7s-7-3.134-7-7V6l7-4z" stroke="#00f5ff" stroke-width="1.4"/>
+              <circle cx="12" cy="12" r="3.2" stroke="#11a8ff" stroke-width="1.4"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="title">🔍 Secret Search Engine</h1>
+            <p class="subtitle">Advanced reconnaissance launcher for ethical bug bounty & OSINT — fast dorks, clean UI, smarter flows</p>
+          </div>
+        </div>
+        <div class="hero-stats" role="status">
+          <div class="stat">
+            <div class="num" id="stat-dorks">100+</div>
+            <div class="label">Curated Dorks</div>
+          </div>
+          <div class="stat">
+            <div class="num">10+</div>
+            <div class="label">Platforms</div>
+          </div>
+          <div class="stat">
+            <div class="num" id="stat-favs">0</div>
+            <div class="label">Favorites</div>
+          </div>
+        </div>
+      </div>
+      <div class="ethics" role="note">
+        Always perform security testing with authorization. This tool streamlines discovery; use it responsibly and ethically.
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <!-- Left panel: domain + platforms -->
+        <section class="panel" aria-label="Targets and platforms">
+          <h3>Targets and platforms</h3>
+          <div class="domain-row">
+            <input id="input-domain" type="text" placeholder="example.com or domain1.com, domain2.com" aria-label="Target domains" />
+            <button class="copy-btn" id="btn-copy-domain" title="Copy domain">📋</button>
+            <button class="clear-btn" id="btn-clear-domain" title="Clear">Clear</button>
+          </div>
+          <p class="hint">Pro tip: add multiple domains separated by commas for batch searches. Press <span class="kbd">/</span> to focus.</p>
+
+          <h3 style="margin-top:12px;">Platforms</h3>
+          <div class="platforms" id="platforms">
+            <!-- Populated via JS -->
+          </div>
+
+          <h3 style="margin-top:12px;">Profiles</h3>
+          <div class="profiles">
+            <button class="profile-btn" data-profile="bugbounty">Bug bounty</button>
+            <button class="profile-btn" data-profile="secrets">Secrets</button>
+            <button class="profile-btn" data-profile="cms">CMS</button>
+            <button class="profile-btn" data-profile="cloud">Cloud</button>
+            <button class="profile-btn" data-profile="sourcecode">Source code</button>
+            <button class="profile-btn" id="btn-shortcuts">Shortcuts</button>
+            <button class="profile-btn" id="btn-settings">Settings</button>
+          </div>
+        </section>
+
+        <!-- Right panel: query builder -->
+        <section class="panel" aria-label="Query builder">
+          <h3>Query builder</h3>
+          <div class="builder">
+            <div class="builder-row">
+              <div class="token">
+                <label class="small">site:</label>
+                <input id="qb-site" type="text" placeholder="example.com or *.example.com" />
+              </div>
+              <div class="token">
+                <label class="small">inurl:</label>
+                <input id="qb-inurl" type="text" placeholder="admin | login | .git | .env" />
+              </div>
+              <div class="token">
+                <label class="small">ext:</label>
+                <input id="qb-ext" type="text" placeholder="env | yml | json | sql | log | bak" />
+              </div>
+              <div class="token">
+                <label class="small">intitle:</label>
+                <input id="qb-intitle" type="text" placeholder="index.of | phpinfo | ‘Index of’" />
+              </div>
+              <div class="token">
+                <label class="small">intext:</label>
+                <input id="qb-intext" type="text" placeholder="‘API key’ | ‘Access token’ | ‘secret’" />
+              </div>
+              <div class="token">
+                <label class="small">minus:</label>
+                <input id="qb-minus" type="text" placeholder="-github -stackoverflow -site:medium.com" />
+              </div>
+            </div>
+            <div class="builder-actions">
+              <button class="action" id="qb-build">Build query</button>
+              <button class="action" id="qb-copy">Copy query</button>
+              <button class="action" id="qb-clear">Clear</button>
+              <button class="action" id="qb-run">Run (Google)</button>
+            </div>
+            <div class="query-preview" id="qb-preview">Your query will appear here...</div>
+          </div>
+        </section>
+      </div>
+    </header>
+
+    <!-- =========================
+         Content Grid (Categories)
+         ========================= -->
+    <main aria-label="Dork categories">
+      <div class="grid" id="category-grid">
+        <!-- Cards populated via JS -->
+      </div>
+    </main>
+
+    <!-- =========================
+         Favorites & History
+         ========================= -->
+    <section class="panel" style="margin-top:20px;" aria-label="Favorites and history">
+      <h3>Favorites and history</h3>
+      <div class="favorites">
+        <div class="builder-actions" style="margin-bottom:8px;">
+          <button class="action" id="fav-export">Export favorites</button>
+          <button class="action" id="fav-import">Import favorites</button>
+          <button class="action" id="fav-clear">Clear favorites</button>
+          <button class="action" id="fav-toggle">Toggle favorites view</button>
+        </div>
+        <div id="fav-list" class="btn-grid" aria-live="polite"></div>
+      </div>
+      <div class="history" style="margin-top:16px;">
+        <div class="builder-actions" style="margin-bottom:8px;">
+          <button class="action" id="hist-clear">Clear history</button>
+          <button class="action" id="hist-export">Export history</button>
+          <button class="action" id="hist-toggle">Toggle history view</button>
+        </div>
+        <div id="hist-list" class="btn-grid"></div>
+      </div>
+    </section>
+
+    <!-- =========================
+         Footer
+         ========================= -->
+    <footer class="site" aria-label="Footer">
+      <div>Use authorized, ethical methods only. Respect privacy, law, and program scopes.</div>
+      <div class="cta">Keep learning, keep hacking — <a href="https://github.com/cyberajju" target="_blank" rel="noopener">CyberTechAjju</a></div>
+    </footer>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-label="Modal">
+    <div class="modal">
+      <h3 id="modal-title">Settings</h3>
+      <div class="content" id="modal-content">
+        <!-- Filled via JS -->
+      </div>
+      <div class="actions">
+        <button class="action" id="modal-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Data: Platforms, Categories, Dorks
+       ============================================================ */
+
+    const PLATFORMS = [
+      { id:'google',   name:'Google',   type:'search', base:'https://www.google.com/search?q=' },
+      { id:'github',   name:'GitHub',   type:'code',   base:'https://github.com/search?q=' },
+      { id:'shodan',   name:'Shodan',   type:'host',   base:'https://www.shodan.io/search?query=' },
+      { id:'censysH',  name:'Censys Hosts', type:'host', base:'https://search.censys.io/search?resource=hosts&q=' },
+      { id:'censysC',  name:'Censys Certs', type:'cert', base:'https://search.censys.io/search?resource=certificates&q=' },
+      { id:'crtsh',    name:'crt.sh',   type:'cert',   base:'https://crt.sh/?q=' },
+      { id:'archive',  name:'Web Archive', type:'web', base:'https://web.archive.org/web/*/' },
+      { id:'reddit',   name:'Reddit',   type:'social', base:'https://www.reddit.com/search/?q=' },
+      { id:'pastebin', name:'Pastebin', type:'paste',  base:'https://www.google.com/search?q=site:pastebin.com+' },
+      { id:'yandex',   name:'Yandex',   type:'search', base:'https://yandex.com/search/?text=' }
+    ];
+
+    // Categories and dorks (a curated subset + expanded items)
+    const CATEGORIES = [
+      {
+        id:'files_dirs', title:'File and directory discovery',
+        items:[
+          { label:'Index of (listing)', q:(d)=>`site:${d} intitle:index.of`, meta:'Directory listing' },
+          { label:'Exposed config files', q:(d)=>`site:${d} (ext:xml | ext:conf | ext:cnf | ext:reg | ext:inf | ext:rdp | ext:cfg | ext:txt | ext:ora | ext:ini)` },
+          { label:'Exposed database files', q:(d)=>`site:${d} (ext:sql | ext:dbf | ext:mdb)` },
+          { label:'Log files', q:(d)=>`site:${d} ext:log` },
+          { label:'Backups and old files', q:(d)=>`site:${d} (ext:bkf | ext:bkp | ext:bak | ext:old | ext:backup)` },
+          { label:'Public docs', q:(d)=>`site:${d} (ext:doc | ext:docx | ext:odt | ext:pdf | ext:rtf | ext:sxw | ext:psw | ext:ppt | ext:pptx | ext:pps | ext:csv)` },
+          { label:'conf.php sensitive', q:(d)=>`site:${d} intitle:index.of conf.php` },
+          { label:'download.php exposure', q:(d)=>`site:${d} intitle:"index of" "download.php?file="` },
+          { label:'YAML exposures', q:(d)=>`site:${d} intitle:"index of" ("users.yml" | "admin.yml" | "config.yml")` },
+          { label:'/etc index', q:(d)=>`site:${d} intext:"Index of" intext:"/etc"` },
+          { label:'Docker compose', q:(d)=>`site:${d} intitle:"index of" "docker-compose.yml"` },
+          { label:'Maven pom.xml', q:(d)=>`site:${d} intext:pom.xml intitle:"index of /"` },
+          { label:'.env secrets', q:(d)=>`site:${d} inurl:.env "API_KEY" | "SECRET" | "AWS_ACCESS_KEY_ID"` },
+          { label:'.git exposure', q:(d)=>`site:${d} inurl:/.git` },
+          { label:'Kubernetes config', q:(d)=>`site:${d} inurl:k8s | inurl:kubernetes ext:yml | ext:yaml` }
+        ]
+      },
+      {
+        id:'auth_admin', title:'Authentication and admin',
+        items:[
+          { label:'Login pages', q:(d)=>`site:${d} inurl:login` },
+          { label:'Admin portal (aspx)', q:(d)=>`site:${d} inurl:/admin.aspx` },
+          { label:'Sensitive admin backups', q:(d)=>`site:${d} intitle:"Index of" inurl:/backup/ "admin.zip"` },
+          { label:'Exposed session configs', q:(d)=>`site:${d} intext:"session" ext:cfg | ext:conf` },
+          { label:'SAML metadata', q:(d)=>`site:${d} intext:"EntityDescriptor" ext:xml` }
+        ]
+      },
+      {
+        id:'cms', title:'WordPress and CMS',
+        items:[
+          { label:'Find WordPress sites', q:(d)=>`site:${d} (inurl:wp- | inurl:wp-content | inurl:plugins | inurl:uploads | inurl:themes | inurl:download)` },
+          { label:'Find WP #2', q:(d)=>`site:${d} inurl:(wp-content | wp-includes)` },
+          { label:'WP config backup', q:(d)=>`site:${d} inurl:"wp-content" intitle:"index.of" intext:wp-config.php` },
+          { label:'WP backup files', q:(d)=>`site:${d} inurl:"wp-content" intitle:"index.of" intext:backup` },
+          { label:'Contact Form 7 path', q:(d)=>`site:${d} inurl:*/wp-content/plugins/contact-form-7/` },
+          { label:'Drupal login', q:(d)=>`site:${d} inurl:user intitle:"Drupal" intext:"Log in" -"powered by"` },
+          { label:'Joomla db path', q:(d)=>`site:${d} inurl:/libraries/joomla/database/` },
+          { label:'WP uploads wpo_wcpdf', q:(d)=>`site:${d} inurl:/wp-content/uploads/wpo_wcpdf` }
+        ]
+      },
+      {
+        id:'db_sql', title:'Database and SQL',
+        items:[
+          { label:'SQL errors', q:(d)=>`site:${d} (intext:"sql syntax near" | intext:"syntax error has occurred" | intext:"incorrect syntax near" | intext:"unexpected end of SQL command" | intext:"Warning: mysql_connect()" | intext:"Warning: mysql_query()" | intext:"Warning: pg_connect()")` },
+          { label:'SQL query files', q:(d)=>`site:${d} inurl:"php?sql=select" ext:php` },
+          { label:'MySQL configs', q:(d)=>`site:${d} intitle:index.of conf.mysql` },
+          { label:'SQL dirs/databases', q:(d)=>`site:${d} "sql" "parent" intitle:index.of -injection` },
+          { label:'MongoDB configs', q:(d)=>`site:${d} intext:"mongodb" ext:cfg | ext:conf` }
+        ]
+      },
+      {
+        id:'vulns', title:'Vulnerabilities and exploits',
+        items:[
+          { label:'phpinfo()', q:(d)=>`site:${d} ext:php intitle:phpinfo "published by the PHP Group"` },
+          { label:'Backdoors', q:(d)=>`site:${d} (inurl:shell | inurl:backdoor | inurl:wso | inurl:cmd | shadow | passwd | boot.ini | inurl:backdoor)` },
+          { label:'Install/setup files', q:(d)=>`site:${d} (inurl:readme | inurl:license | inurl:install | inurl:setup | inurl:config)` },
+          { label:'Open redirects', q:(d)=>`site:${d} (inurl:redir | inurl:url | inurl:redirect | inurl:return | inurl:src=http | inurl:r=http)` },
+          { label:'Apache Struts RCE', q:(d)=>`site:${d} (ext:action | ext:struts | ext:do)` },
+          { label:'File upload scripts', q:(d)=>`site:${d} inurl:uploadimage.php` },
+          { label:'Exposed .htaccess/.git', q:(d)=>`(inurl:"/phpinfo.php" | inurl:".htaccess" | inurl:"/.git") ${d} -github` },
+          { label:'GeoServer WFS', q:(d)=>`site:${d} inurl:"/geoserver/ows?service=wfs"` },
+          { label:'ArcGIS REST', q:(d)=>`site:${d} intext:"ArcGIS REST Services Directory" intitle:"Folder: /"` }
+        ]
+      },
+      {
+        id:'subdomains', title:'Subdomains and assets',
+        items:[
+          { label:'Find subdomains', q:(d)=>`site:*.${d}` },
+          { label:'Find sub-subdomains', q:(d)=>`site:*.*.${d}` },
+          { label:'crt.sh wildcard', q:(d)=>`%25.${d}` },
+          { label:'Censys hosts', q:(d)=>`${d}` },
+          { label:'Censys domain', q:(d)=>`${d}` },
+          { label:'Censys certificates', q:(d)=>`${d}` },
+          { label:'Shodan query', q:(d)=>`${d}` }
+        ]
+      },
+      {
+        id:'flash_media', title:'Flash and media files',
+        items:[
+          { label:'SWF (Google)', q:(d)=>`inurl:${d} ext:swf` },
+          { label:'SWF (Yandex)', q:(d)=>`site:${d} mime:swf` },
+          { label:'SWF links archive', q:(d)=>`https://web.archive.org/cdx/search?url=${encodeURIComponent(d)}/&matchType=domain&collapse=urlkey&output=text&fl=original&filter=urlkey:.*swf&limit=100000` },
+          { label:'MIME-SWF links archive', q:(d)=>`https://web.archive.org/cdx/search?url=${encodeURIComponent(d)}/&matchType=domain&collapse=urlkey&output=text&fl=original&filter=mimetype:application/x-shockwave-flash&limit=100000` }
+        ]
+      },
+      {
+        id:'archive', title:'Archive and historical',
+        items:[
+          { label:'Wayback #1', q:(d)=>`.${d}` },
+          { label:'Wayback #2', q:(d)=>`${d}/*` }
+        ]
+      },
+      {
+        id:'osint', title:'OSINT and social',
+        items:[
+          { label:'Pastebin entries', q:(d)=>`site:pastebin.com ${d}` },
+          { label:'LinkedIn employees', q:(d)=>`site:linkedin.com employees ${d}` },
+          { label:'GitHub code search', q:(d)=>`"*.${d}"` },
+          { label:'ThreatCrowd', q:(d)=>`http://threatcrowd.org/domain.php?domain=${d}` },
+          { label:'OpenBugBounty', q:(d)=>`https://www.openbugbounty.org/search/?search=${encodeURIComponent(d)}&type=host` },
+          { label:'Reddit mentions', q:(d)=>`${d}` },
+          { label:'GitHub API keys', q:(d)=>`site:${d} intitle:"index of" github-api` }
+        ]
+      },
+      {
+        id:'config_api', title:'Configuration and API',
+        items:[
+          { label:'main.yml index', q:(d)=>`site:${d} intitle:"index of "main.yml"` },
+          { label:'Sharing API Info', q:(d)=>`site:${d} intitle:"Sharing API Info"` },
+          { label:'JSON-RPC', q:(d)=>`site:${d} intext:"index of" inurl:json-rpc` },
+          { label:'jwks-rsa', q:(d)=>`site:${d} intext:"index of" inurl:jwks-rsa` },
+          { label:'Docker compose', q:(d)=>`site:${d} intitle:"index of" "docker-compose.yml"` },
+          { label:'Maven pom.xml', q:(d)=>`site:${d} intext:pom.xml intitle:"index of /"` }
+        ]
+      },
+      {
+        id:'secrets', title:'Secrets and credentials',
+        items:[
+          { label:'API key patterns', q:(d)=>`site:${d} ("API key" | "api_key" | "apikey" | "ACCESS_KEY")` },
+          { label:'Token patterns', q:(d)=>`site:${d} ("access_token" | "auth_token" | "bearer")` },
+          { label:'AWS keys', q:(d)=>`site:${d} ("AWS_ACCESS_KEY_ID" | "AWS_SECRET_ACCESS_KEY")` },
+          { label:'Google API keys', q:(d)=>`site:${d} ("AIzaSy" | "GOOGLE_API_KEY")` },
+          { label:'Slack tokens', q:(d)=>`site:${d} ("xoxp-" | "xoxb-")` },
+          { label:'Stripe keys', q:(d)=>`site:${d} ("sk_live_" | "pk_live_")` },
+          { label:'Twilio creds', q:(d)=>`site:${d} ("TWILIO_ACCOUNT_SID" | "TWILIO_AUTH_TOKEN")` },
+          { label:'Firebase config', q:(d)=>`site:${d} ("apiKey" | "authDomain" | "databaseURL" | "storageBucket") ext:json` },
+          { label:'SMTP creds', q:(d)=>`site:${d} ("MAIL_USERNAME" | "MAIL_PASSWORD" | "smtp_password")` },
+          { label:'Private keys', q:(d)=>`site:${d} (ext:key | ext:pem | ext:ppk) "PRIVATE KEY"` }
+        ]
+      },
+      {
+        id:'cloud', title:'Cloud and infrastructure',
+        items:[
+          { label:'S3 bucket listings', q:(d)=>`site:${d} inurl:s3.amazonaws.com | intext:"ListBucketResult"` },
+          { label:'GCP JSON creds', q:(d)=>`site:${d} "type":"service_account" ext:json` },
+          { label:'Azure config', q:(d)=>`site:${d} intext:"azure" ("client_secret" | "tenant")` },
+          { label:'Docker registry', q:(d)=>`site:${d} inurl:/v2/_catalog` },
+          { label:'Exposed Prometheus', q:(d)=>`site:${d} intitle:Prometheus "Targets" -github` }
+        ]
+      },
+      {
+        id:'source', title:'Source code and repos',
+        items:[
+          { label:'Git files', q:(d)=>`site:${d} inurl:.git` },
+          { label:'SVN entries', q:(d)=>`site:${d} inurl:.svn` },
+          { label:'.hg Mercurial', q:(d)=>`site:${d} inurl:.hg` },
+          { label:'Env files', q:(d)=>`site:${d} ext:env` },
+          { label:'Package files', q:(d)=>`site:${d} (ext:json | ext:lock | ext:toml | ext:yaml | ext:yml)` }
+        ]
+      },
+      {
+        id:'headers', title:'Security headers (indicative)',
+        items:[
+          { label:'CSP mentions', q:(d)=>`site:${d} intext:"Content-Security-Policy"` },
+          { label:'HSTS mentions', q:(d)=>`site:${d} intext:"Strict-Transport-Security"` },
+          { label:'X-Frame-Options', q:(d)=>`site:${d} intext:"X-Frame-Options"` }
+        ]
+      },
+      {
+        id:'misc', title:'Miscellaneous probes',
+        items:[
+          { label:'robots.txt', q:(d)=>`site:${d} inurl:/robots.txt` },
+          { label:'sitemap.xml', q:(d)=>`site:${d} inurl:/sitemap.xml` },
+          { label:'Server-status', q:(d)=>`site:${d} inurl:/server-status` },
+          { label:'Debug endpoints', q:(d)=>`site:${d} (inurl:debug | inurl:test | inurl:dev)` }
+        ]
+      }
+    ];
+
+    /* ============================================================
+       State
+       ============================================================ */
+    const State = {
+      platformsActive: new Set(['google','github','shodan','censysH','censysC','crtsh','archive','reddit','pastebin','yandex']),
+      favorites: [], // {catId, label, qFnString}
+      history: [],   // {domain, label, platformId, url, ts}
+      showFavs: true,
+      showHist: true,
+      lastQuery: '',
+    };
+
+    /* ============================================================
+       Utilities
+       ============================================================ */
+    const qs = (sel, root=document)=>root.querySelector(sel);
+    const qsa = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+    const copyText = async (txt)=>{
+      try{
+        await navigator.clipboard.writeText(txt);
+        toast('Copied to clipboard', 'good');
+      }catch(e){
+        toast('Copy failed', 'bad');
+      }
+    };
+    const toast = (text, mood='good')=>{
+      const wrap = qs('#toast');
+      const item = document.createElement('div');
+      item.className = `item ${mood}`;
+      item.innerHTML = `<div class="icon">${
+        mood==='good'?'✅':mood==='warn'?'⚠️':'⛔'
+      }</div><div class="text">${text}</div>`;
+      wrap.appendChild(item);
+      setTimeout(()=>{ item.remove(); }, 3000);
+    };
+    const saveLocal = ()=>{
+      localStorage.setItem('secret_engine_state', JSON.stringify({
+        favorites: State.favorites,
+        history: State.history,
+        platformsActive: Array.from(State.platformsActive),
+        showFavs: State.showFavs,
+        showHist: State.showHist,
+      }));
+    };
+    const loadLocal = ()=>{
+      try{
+        const raw = localStorage.getItem('secret_engine_state');
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        State.favorites = data.favorites || [];
+        State.history = data.history || [];
+        State.platformsActive = new Set(data.platformsActive || []);
+        State.showFavs = !!data.showFavs;
+        State.showHist = !!data.showHist;
+      }catch(e){}
+    };
+    const formatTime = (ts)=>{
+      const d = new Date(ts);
+      return d.toLocaleString();
+    };
+
+    /* ============================================================
+       Platform rendering
+       ============================================================ */
+    const renderPlatforms = ()=>{
+      const host = qs('#platforms');
+      host.innerHTML = '';
+      PLATFORMS.forEach(p=>{
+        const el = document.createElement('div');
+        el.className = 'chip' + (State.platformsActive.has(p.id)?' active':'');
+        el.innerHTML = `<span>🔗</span><span>${p.name}</span>`;
+        el.title = `Toggle ${p.name}`;
+        el.addEventListener('click', ()=>{
+          if(State.platformsActive.has(p.id)) State.platformsActive.delete(p.id);
+          else State.platformsActive.add(p.id);
+          renderPlatforms();
+          saveLocal();
+        });
+        host.appendChild(el);
+      });
+    };
+
+    /* ============================================================
+       Category rendering
+       ============================================================ */
+    const renderCategories = ()=>{
+      const grid = qs('#category-grid');
+      grid.innerHTML = '';
+      let totalDorks = 0;
+      CATEGORIES.forEach(cat=>{
+        const card = document.createElement('section');
+        card.className = 'card';
+        card.innerHTML = `<h4>${cat.title}</h4>`;
+        const btnGrid = document.createElement('div');
+        btnGrid.className = 'btn-grid';
+        cat.items.forEach((item, idx)=>{
+          totalDorks++;
+          const btn = document.createElement('button');
+          btn.className = 'btn';
+          btn.innerHTML = `<div>${item.label}</div>${ item.meta? `<div class="meta">${item.meta}</div>`:'' }`;
+          btn.title = `Run "${item.label}"`;
+          btn.addEventListener('click', ()=>{
+            runDork(cat.id, item);
+          });
+          // Context menu for favorite / copy
+          btn.addEventListener('contextmenu', (ev)=>{
+            ev.preventDefault();
+            showContextMenu(ev.clientX, ev.clientY, cat, item);
+          });
+          btnGrid.appendChild(btn);
+        });
+        card.appendChild(btnGrid);
+        grid.appendChild(card);
+      });
+      qs('#stat-dorks').textContent = `${totalDorks}+`;
+    };
+
+    /* ============================================================
+       Running dorks
+       ============================================================ */
+    const parseDomains = ()=>{
+      const raw = qs('#input-domain').value.trim();
+      if(!raw){ toast('Please enter a target domain', 'warn'); return []; }
+      return raw.split(',').map(s=>s.trim()).filter(Boolean);
+    };
+
+    const getPlatformUrl = (platformId, query, domain)=>{
+      const p = PLATFORMS.find(x=>x.id===platformId);
+      if(!p) return '';
+      // Platform-specific adjustments
+      switch(platformId){
+        case 'google':
+        case 'yandex':
+        case 'reddit':
+          return p.base + encodeURIComponent(query);
+        case 'github':
+          return p.base + encodeURIComponent(query) + '&type=code';
+        case 'shodan':
+          // Shodan expects direct keyword
+          return p.base + encodeURIComponent(domain || query);
+        case 'censysH':
+        case 'censysC':
+          return p.base + encodeURIComponent(domain || query);
+        case 'crtsh':
+          return p.base + encodeURIComponent(query);
+        case 'archive':
+          return p.base + encodeURIComponent(query);
+        case 'pastebin':
+          return p.base + encodeURIComponent(query);
+        default:
+          return p.base + encodeURIComponent(query);
+      }
+    };
+
+    const runDork = (catId, item)=>{
+      const domains = parseDomains();
+      if(domains.length===0) return;
+
+      const activePlatforms = Array.from(State.platformsActive);
+      let opened = 0;
+      domains.forEach(d=>{
+        const query = item.q(d);
+        State.lastQuery = query;
+        activePlatforms.forEach(pid=>{
+          const url = getPlatformUrl(pid, query, d);
+          try{ window.open(url, '_blank'); opened++; }catch(e){}
+          State.history.unshift({ domain:d, label:item.label, platformId:pid, url, ts: Date.now() });
+        });
+      });
+
+      toast(`Launched ${opened} searches across ${activePlatforms.length} platform(s)`, 'good');
+      saveLocal();
+      renderHistory();
+    };
+
+    /* ============================================================
+       Context menu (favorites/copy)
+       ============================================================ */
+    const showContextMenu = (x,y,cat,item)=>{
+      const menu = document.createElement('div');
+      menu.style.cssText = `
+        position: fixed;
+        top:${y}px; left:${x}px;
+        z-index: 9999;
+        background: rgba(0,0,0,0.92);
+        border: 1px solid rgba(0,245,255,0.35);
+        border-radius: 12px;
+        min-width: 220px;
+        box-shadow: 0 18px 30px rgba(0,0,0,0.4);
+      `;
+      const mkItem = (label, fn)=>{
+        const el = document.createElement('div');
+        el.textContent = label;
+        el.style.cssText = `
+          padding: 10px 12px;
+          color: #e6f0ff;
+          cursor: pointer;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+        `;
+        el.addEventListener('mouseover', ()=> el.style.background='rgba(0,245,255,0.12)');
+        el.addEventListener('mouseout', ()=> el.style.background='transparent');
+        el.addEventListener('click', ()=>{
+          fn(); menu.remove();
+        });
+        return el;
+      };
+      menu.appendChild(mkItem('Add to favorites ⭐', ()=>{
+        // Save function as string for persistence
+        const qFnString = item.q.toString();
+        State.favorites.unshift({ catId: cat.id, label: item.label, qFnString });
+        saveLocal(); renderFavorites();
+        toast('Added to favorites', 'good');
+      }));
+      menu.appendChild(mkItem('Copy query 📋', ()=>{
+        const domains = parseDomains();
+        const q = item.q(domains[0] || 'example.com');
+        copyText(q);
+      }));
+      menu.appendChild(mkItem('Copy URL (Google) 🔗', ()=>{
+        const domains = parseDomains();
+        const q = item.q(domains[0] || 'example.com');
+        const url = getPlatformUrl('google', q, domains[0]);
+        copyText(url);
+      }));
+      document.body.appendChild(menu);
+      const cleanup = ()=> menu.remove();
+      setTimeout(()=>{
+        window.addEventListener('click', cleanup, { once:true });
+      }, 0);
+    };
+
+    /* ============================================================
+       Favorites rendering
+       ============================================================ */
+    const renderFavorites = ()=>{
+      const host = qs('#fav-list');
+      host.innerHTML = '';
+      if(!State.showFavs){
+        host.innerHTML = '<div class="small">Favorites hidden</div>';
+        qs('#stat-favs').textContent = '0';
+        return;
+      }
+      if(State.favorites.length===0){
+        host.innerHTML = '<div class="small">No favorites yet. Right-click any dork to add.</div>';
+        qs('#stat-favs').textContent = '0';
+        return;
+      }
+      qs('#stat-favs').textContent = String(State.favorites.length);
+      State.favorites.forEach((fav, idx)=>{
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.innerHTML = `<div>${fav.label}</div><div class="meta">Cat: ${fav.catId}</div>`;
+        btn.addEventListener('click', ()=>{
+          // Rebuild function from string
+          let qFn;
+          try{ qFn = eval(`(${fav.qFnString})`); }catch(e){ qFn = (d)=>`site:${d}`; }
+          runDork(fav.catId, { label: fav.label, q: qFn });
+        });
+        // Context menu for remove
+        btn.addEventListener('contextmenu', (ev)=>{
+          ev.preventDefault();
+          const menu = document.createElement('div');
+          menu.style.cssText = `
+            position: fixed; top:${ev.clientY}px; left:${ev.clientX}px;
+            z-index: 9999; background: rgba(0,0,0,0.92);
+            border: 1px solid rgba(0,245,255,0.35);
+            border-radius: 12px; min-width: 220px;
+            box-shadow: 0 18px 30px rgba(0,0,0,0.4);
+          `;
+          const del = document.createElement('div');
+          del.textContent = 'Remove from favorites ❌';
+          del.style.cssText = `padding: 10px 12px; color: #e6f0ff; cursor: pointer;`;
+          del.addEventListener('mouseover', ()=> del.style.background='rgba(255,77,109,0.18)');
+          del.addEventListener('mouseout', ()=> del.style.background='transparent');
+          del.addEventListener('click', ()=>{
+            State.favorites.splice(idx,1); saveLocal(); renderFavorites(); menu.remove();
+            toast('Removed favorite', 'bad');
+          });
+          menu.appendChild(del);
+          document.body.appendChild(menu);
+          window.addEventListener('click', ()=> menu.remove(), { once:true });
+        });
+
+        host.appendChild(btn);
+      });
+    };
+
+    /* ============================================================
+       History rendering
+       ============================================================ */
+    const renderHistory = ()=>{
+      const host = qs('#hist-list');
+      host.innerHTML = '';
+      if(!State.showHist){
+        host.innerHTML = '<div class="small">History hidden</div>';
+        return;
+      }
+      if(State.history.length===0){
+        host.innerHTML = '<div class="small">No history yet.</div>';
+        return;
+      }
+      State.history.slice(0,50).forEach(h=>{
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.innerHTML = `<div>${h.label} — <span class="small">${h.domain}</span></div><div class="meta">${h.platformId} • ${formatTime(h.ts)}</div>`;
+        btn.addEventListener('click', ()=>{
+          try{ window.open(h.url, '_blank'); }catch(e){}
+        });
+        // Context menu for copy URL
+        btn.addEventListener('contextmenu', (ev)=>{
+          ev.preventDefault();
+          copyText(h.url);
+        });
+        host.appendChild(btn);
+      });
+    };
+
+    /* ============================================================
+       Query builder actions
+       ============================================================ */
+    const buildQuery = ()=>{
+      const site = qs('#qb-site').value.trim();
+      const inurl = qs('#qb-inurl').value.trim();
+      const ext = qs('#qb-ext').value.trim();
+      const intitle = qs('#qb-intitle').value.trim();
+      const intext = qs('#qb-intext').value.trim();
+      const minus = qs('#qb-minus').value.trim();
+
+      const parts = [];
+      if(site) parts.push(`site:${site}`);
+      if(inurl) parts.push(`inurl:${inurl}`);
+      if(ext) parts.push(`(${ext.split('|').map(s=>s.trim()).map(s=> s.startsWith('ext:')?s:`ext:${s}`).join(' | ')})`);
+      if(intitle) parts.push(`intitle:${intitle}`);
+      if(intext) parts.push(`intext:${intext}`);
+      if(minus) parts.push(`${minus}`);
+
+      const query = parts.join(' ');
+      qs('#qb-preview').textContent = query || 'Your query will appear here...';
+      State.lastQuery = query;
+      return query;
+    };
+
+    const runBuilderOnGoogle = ()=>{
+      const q = buildQuery();
+      if(!q){ toast('Build a query first', 'warn'); return; }
+      const url = getPlatformUrl('google', q);
+      try{ window.open(url, '_blank'); }catch(e){}
+    };
+
+    /* ============================================================
+       Modal (shortcuts/settings)
+       ============================================================ */
+    const modal = {
+      open(title, html){
+        qs('#modal-title').textContent = title;
+        qs('#modal-content').innerHTML = html;
+        qs('#modal-backdrop').style.display = 'flex';
+      },
+      close(){
+        qs('#modal-backdrop').style.display = 'none';
+      }
+    };
+
+    const showShortcuts = ()=>{
+      modal.open('Keyboard shortcuts', `
+        <div>
+          <p><span class="kbd">/</span> — Focus domain</p>
+          <p><span class="kbd">Enter</span> — Run last selected query (Google)</p>
+          <p><span class="kbd">F</span> — Toggle favorites view</p>
+          <p><span class="kbd">H</span> — Toggle history view</p>
+          <p><span class="kbd">S</span> — Open settings</p>
+          <p><span class="kbd">?</span> — Show shortcuts</p>
+        </div>
+      `);
+    };
+
+    const showSettings = ()=>{
+      modal.open('Settings', `
+        <div>
+          <p class="small">Enable/disable platforms by clicking chips. Your preferences are saved locally.</p>
+          <div class="loading-line"><div class="bar"></div></div>
+          <div style="margin-top:12px;">
+            <button class="action" id="btn-reset">Reset all settings</button>
+            <button class="action" id="btn-export-state">Export state (JSON)</button>
+            <button class="action" id="btn-import-state">Import state (JSON)</button>
+          </div>
+        </div>
+      `);
+      const btnReset = document.getElementById('btn-reset');
+      const btnExport = document.getElementById('btn-export-state');
+      const btnImport = document.getElementById('btn-import-state');
+
+      btnReset.addEventListener('click', ()=>{
+        localStorage.removeItem('secret_engine_state');
+        State.platformsActive = new Set(PLATFORMS.map(p=>p.id));
+        State.favorites = [];
+        State.history = [];
+        State.showFavs = true;
+        State.showHist = true;
+        saveLocal();
+        renderPlatforms(); renderFavorites(); renderHistory();
+        toast('Settings reset', 'good');
+      });
+      btnExport.addEventListener('click', ()=>{
+        const data = JSON.stringify({
+          favorites: State.favorites,
+          history: State.history,
+          platformsActive: Array.from(State.platformsActive),
+          showFavs: State.showFavs, showHist: State.showHist
+        }, null, 2);
+        copyText(data);
+      });
+      btnImport.addEventListener('click', async ()=>{
+        const raw = prompt('Paste JSON state to import');
+        if(!raw){ toast('Import cancelled','warn'); return; }
+        try{
+          const data = JSON.parse(raw);
+          State.favorites = data.favorites || [];
+          State.history = data.history || [];
+          State.platformsActive = new Set(data.platformsActive || PLATFORMS.map(p=>p.id));
+          State.showFavs = !!data.showFavs;
+          State.showHist = !!data.showHist;
+          saveLocal();
+          renderPlatforms(); renderFavorites(); renderHistory();
+          toast('Imported state', 'good');
+        }catch(e){ toast('Invalid JSON', 'bad'); }
+      });
+    };
+
+    /* ============================================================
+       Event bindings
+       ============================================================ */
+    const bindEvents = ()=>{
+      // Domain controls
+      qs('#btn-copy-domain').addEventListener('click', ()=>{
+        const val = qs('#input-domain').value.trim();
+        if(!val) return toast('No domain to copy','warn');
+        copyText(val);
+      });
+      qs('#btn-clear-domain').addEventListener('click', ()=>{
+        qs('#input-domain').value = '';
+      });
+
+      // Profiles
+      qsa('.profile-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.dataset.profile;
+          if(id) applyProfile(id);
+        });
+      });
+      qs('#btn-shortcuts').addEventListener('click', showShortcuts);
+      qs('#btn-settings').addEventListener('click', showSettings);
+      qs('#modal-close').addEventListener('click', ()=> modal.close());
+      qs('#modal-backdrop').addEventListener('click', (e)=>{ if(e.target.id==='modal-backdrop') modal.close(); });
+
+      // Builder
+      qs('#qb-build').addEventListener('click', buildQuery);
+      qs('#qb-copy').addEventListener('click', ()=>{
+        const q = buildQuery(); if(!q) return;
+        copyText(q);
+      });
+      qs('#qb-clear').addEventListener('click', ()=>{
+        ['qb-site','qb-inurl','qb-ext','qb-intitle','qb-intext','qb-minus'].forEach(id=> qs('#'+id).value = '');
+        qs('#qb-preview').textContent = 'Your query will appear here...';
+      });
+      qs('#qb-run').addEventListener('click', runBuilderOnGoogle);
+
+      // Favorites and history toggles
+      qs('#fav-export').addEventListener('click', ()=>{
+        const data = JSON.stringify(State.favorites,null,2);
+        copyText(data);
+      });
+      qs('#fav-import').addEventListener('click', async ()=>{
+        const raw = prompt('Paste favorites JSON to import');
+        if(!raw){ toast('Import cancelled','warn'); return; }
+        try{
+          const arr = JSON.parse(raw);
+          if(!Array.isArray(arr)) throw new Error('Not an array');
+          State.favorites = arr;
+          saveLocal(); renderFavorites();
+          toast('Imported favorites','good');
+        }catch(e){ toast('Invalid favorites JSON','bad'); }
+      });
+      qs('#fav-clear').addEventListener('click', ()=>{
+        State.favorites = []; saveLocal(); renderFavorites();
+        toast('Favorites cleared','warn');
+      });
+      qs('#fav-toggle').addEventListener('click', ()=>{
+        State.showFavs = !State.showFavs; saveLocal(); renderFavorites();
+      });
+
+      qs('#hist-clear').addEventListener('click', ()=>{
+        State.history = []; saveLocal(); renderHistory();
+        toast('History cleared','warn');
+      });
+      qs('#hist-export').addEventListener('click', ()=>{
+        const data = JSON.stringify(State.history,null,2);
+        copyText(data);
+      });
+      qs('#hist-toggle').addEventListener('click', ()=>{
+        State.showHist = !State.showHist; saveLocal(); renderHistory();
+      });
+
+      // Keyboard shortcuts
+      window.addEventListener('keydown', (e)=>{
+        if(e.key==='/'){ e.preventDefault(); qs('#input-domain').focus(); }
+        else if(e.key==='?'){ e.preventDefault(); showShortcuts(); }
+        else if(e.key==='f' || e.key==='F'){ e.preventDefault(); State.showFavs=!State.showFavs; saveLocal(); renderFavorites(); }
+        else if(e.key==='h' || e.key==='H'){ e.preventDefault(); State.showHist=!State.showHist; saveLocal(); renderHistory(); }
+        else if(e.key==='s' || e.key==='S'){ e.preventDefault(); showSettings(); }
+        else if(e.key==='Enter'){ // Run last query on Google
+          e.preventDefault();
+          const q = State.lastQuery || buildQuery();
+          if(!q){ toast('Select a dork or build a query first','warn'); return; }
+          const url = getPlatformUrl('google', q);
+          try{ window.open(url, '_blank'); }catch(e){}
+        }
+      });
+    };
+
+    /* ============================================================
+       Profiles (quick presets)
+       ============================================================ */
+    const applyProfile = (id)=>{
+      const set = new Set();
+      switch(id){
+        case 'bugbounty': set.add('google'); set.add('github'); set.add('shodan'); set.add('censysH'); set.add('crtsh'); set.add('archive'); break;
+        case 'secrets': set.add('google'); set.add('github'); set.add('yandex'); set.add('reddit'); break;
+        case 'cms': set.add('google'); set.add('archive'); set.add('crtsh'); break;
+        case 'cloud': set.add('google'); set.add('github'); set.add('yandex'); break;
+        case 'sourcecode': set.add('google'); set.add('github'); set.add('archive'); break;
+        default: PLATFORMS.forEach(p=> set.add(p.id));
+      }
+      State.platformsActive = set; renderPlatforms(); saveLocal();
+      toast(`Profile applied: ${id}`, 'good');
+    };
+
+    /* ============================================================
+       Initialization
+       ============================================================ */
+    const init = ()=>{
+      loadLocal();
+      renderPlatforms();
+      renderCategories();
+      renderFavorites();
+      renderHistory();
+      bindEvents();
+      // Seed lastQuery to builder preview
+      buildQuery();
+    };
+    init();
+  </script>
+</body>
+</html>
