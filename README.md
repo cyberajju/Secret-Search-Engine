@@ -1,9 +1,4 @@
 # 🔍 Secret Search Engine
-
-<p align="center">
-  <img src="https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif" width="600" alt="Recon Animation"/>
-</p>
-
 Secret Search Engine is an advanced reconnaissance toolkit for bug bounty hunters and OSINT researchers. It consolidates powerful search queries (Google dorks) and platform integrations to help discover exposed assets, sensitive files, and potential vulnerabilities.
 
 Built and improved by CyberTechAjju — inspired by the original project by gatiella.
